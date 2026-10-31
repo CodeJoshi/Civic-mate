@@ -43,7 +43,7 @@ streamlit run frontend/app.py
 
 ## Optional Gemini setup
 
-Copy `backend/.env.example` to `backend/.env` and set `GEMINI_API_KEY` to your own key. Never commit `.env`. With no key (default), CivicMate uses deterministic offline summaries. If Gemini is configured but unavailable, the service falls back to the offline sample summary and labels the response accordingly.
+Copy `backend/.env.example` to `backend/.env` and set `GEMINI_API_KEY` to your own key. Never commit `.env`. `GEMINI_MODEL` optionally selects the Gemini model and defaults to `gemini-3.8-flash` for both policy summaries and document extraction. With no key (default), CivicMate uses deterministic offline summaries. If Gemini is configured but unavailable, the service falls back to the offline sample summary and labels the response accordingly.
 
 For local runs, environment variables in `backend/.env` are loaded by `run.sh` / `run.ps1`. When starting services manually, export the variables yourself or use your preferred dotenv loader.
 

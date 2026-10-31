@@ -2,6 +2,7 @@ from enum import Enum
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 
+
 class Language(str, Enum):
     ENGLISH = "English"
     HINDI = "Hindi"
@@ -51,3 +52,10 @@ class ExecuteRequest(BaseModel):
     profile: UserProfile
     scheme_name: str
     eligible: bool
+
+class OCRExtraction(BaseModel):
+    name: str | None = None
+    annual_income: float | None = None
+    state: str | None = None
+    category: str | None = None
+
