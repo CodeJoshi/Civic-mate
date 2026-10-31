@@ -1,0 +1,4 @@
+{
+  "PMAY": {"name":"Pradhan Mantri Awas Yojana (PMAY) Urban — Sample 2024", "income_cap":300000, "description":"Fictionalized demo data based on the sample criteria in the project specification. Verify current official rules before relying on it."},
+  "PMKISAN": {"name":"PM-Kisan Income Support — Demo Summary", "income_cap":null, "description":"Illustrative summary only. Actual eligibility has multiple rules and exclusions; verify official guidance."}
+}
