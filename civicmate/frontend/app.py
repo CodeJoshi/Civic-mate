@@ -6,6 +6,11 @@ import requests
 import streamlit as st
 from PIL import Image
 
+def t(key):
+    language = st.session_state.get("preferred_language", "English")
+    return TRANSLATIONS.get(language, TRANSLATIONS["English"]).get(
+        key, TRANSLATIONS["English"].get(key, key)
+    )
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -46,6 +51,7 @@ st.set_page_config(
 # Styles. The page forces its own light, friendly look so it reads the same
 # whether the visitor's Streamlit theme is light or dark.
 # ---------------------------------------------------------------------------
+
 st.markdown(
     """
 <style>
@@ -252,6 +258,159 @@ button:focus-visible, [role="tab"]:focus-visible { outline: 3px solid var(--saff
 
 
 # ---------------------------------------------------------------------------
+# Language selection
+# ---------------------------------------------------------------------------
+
+if "preferred_language" not in st.session_state:
+    st.session_state["preferred_language"] = None
+
+if st.session_state["preferred_language"] is None:
+
+    st.markdown(
+        """
+        <div class="hero">
+            <div class="hero-title">
+                Welcome to CivicMate!
+            </div>
+            <div class="hero-sub">
+                Choose your preferred language to continue.
+                CivicMate will use this language throughout the website.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    selected_language = st.selectbox(
+        "Choose your preferred language",
+        list(LANGUAGES.keys()),
+        format_func=lambda l: f"{l} ({LANGUAGES[l]})",
+        key="initial_language",
+    )
+
+    if st.button("Continue", type="primary", use_container_width=True):
+        st.session_state["preferred_language"] = selected_language
+        st.rerun()
+
+    st.stop()
+
+# ---------------------------------------------------------------------------
+# Language translations
+# ---------------------------------------------------------------------------
+
+TRANSLATIONS = {
+    "English": {
+        "welcome": "Welcome to CivicMate!",
+        "find": "Find",
+        "apply": "Apply",
+        "empower": "Empower",
+        "choose_scheme": "Tell us about the scheme",
+        "upload": "Upload a policy PDF or text file",
+        "explain": "Explain this policy",
+        "full_name": "Full name",
+        "income": "Annual income",
+        "approve": "Approve and submit",
+        "continue": "Continue",
+        "choose_language": "Choose your language",
+    },
+
+    "Hindi": {
+        "welcome": "CivicMate में आपका स्वागत है!",
+        "find": "योजनाएं खोजें",
+        "apply": "आवेदन करें",
+        "empower": "सशक्त बनें",
+        "choose_scheme": "योजना के बारे में बताएं",
+        "upload": "नीति PDF या टेक्स्ट फ़ाइल अपलोड करें",
+        "explain": "इस नीति को समझाएं",
+        "full_name": "पूरा नाम",
+        "income": "वार्षिक आय",
+        "approve": "अनुमोदित करें और जमा करें",
+        "continue": "आगे बढ़ें",
+        "choose_language": "अपनी भाषा चुनें",
+    },
+
+    "Tamil": {
+        "welcome": "CivicMate-க்கு உங்களை வரவேற்கிறோம்!",
+        "find": "தேடுங்கள்",
+        "apply": "விண்ணப்பிக்கவும்",
+        "empower": "மேம்படுங்கள்",
+        "choose_scheme": "திட்டத்தைப் பற்றிக் கூறுங்கள்",
+        "upload": "கொள்கை PDF அல்லது உரைக் கோப்பைப் பதிவேற்றவும்",
+        "explain": "இந்தக் கொள்கையை விளக்கவும்",
+        "full_name": "முழுப் பெயர்",
+        "income": "ஆண்டு வருமானம்",
+        "approve": "ஒப்புதல் அளித்து சமர்ப்பிக்கவும்",
+        "continue": "தொடரவும்",
+        "choose_language": "மொழியைத் தேர்ந்தெடுக்கவும்",
+    },
+
+    "Telugu": {
+        "welcome": "CivicMate కు స్వాగతం!",
+        "find": "పథకాలను కనుగొనండి",
+        "apply": "దరఖాస్తు చేయండి",
+        "empower": "సాధికారత పొందండి",
+        "choose_scheme": "పథకం గురించి వివరించండి",
+        "upload": "పాలసీ PDF లేదా టెక్స్ట్ ఫైల్‌ను అప్‌లోడ్ చేయండి",
+        "explain": "ఈ పాలసీని వివరించండి",
+        "full_name": "పూర్తి పేరు",
+        "income": "వార్షిక ఆదాయం",
+        "approve": "ఆమోదించి సమర్పించండి",
+        "continue": "కొనసాగించండి",
+        "choose_language": "	మీ భాషను ఎంచుకోండి",
+    },
+
+    "Marathi": {
+        "welcome": "CivicMate मध्ये आपले स्वागत आहे!",
+        "find": "योजना शोधा",
+        "apply": "अर्ज करा",
+        "empower": "सक्षम व्हा",
+        "choose_scheme": "योजनेबद्दल माहिती द्या",
+        "upload": "धोरणाची PDF किंवा मजकूर फाइल अपलोड करा",
+        "explain": "हे धोरण समजावून सांगा",
+        "full_name": "पूर्ण नाव",
+        "income": "वार्षिक उत्पन्न",
+        "approve": "मंजूर करा आणि सबमिट करा",
+        "continue": "पुढे जा",
+        "choose_language": "	तुमची भाषा निवडा",
+    },
+
+    "Bengali": {
+        "welcome": "CivicMate-এ আপনাকে স্বাগতম!",
+        "find": "প্রকল্প খুঁজুন",
+        "apply": "আবেদন করুন",
+        "empower": "ক্ষমতায়ন",
+        "choose_scheme": "প্রকল্প সম্পর্কে জানান",
+        "upload": "নীতির PDF বা টেক্সট ফাইল আপলোড করুন",
+        "explain": "এই নীতিটি ব্যাখ্যা করুন",
+        "full_name": "পুরো নাম",
+        "income": "বার্ষিক আয়",
+        "approve": "অনুমোদন করুন এবং জমা দিন",
+        "continue": "চালিয়ে যান",
+        "choose_language": "	আপনার ভাষা নির্বাচন করুনe",
+    },
+
+    "Kannada": {
+        "welcome": "CivicMate ಗೆ ಸ್ವಾಗತ!",
+        "find": "ಯೋಜನೆಗಳನ್ನು ಹುಡುಕಿ",
+        "apply": "ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
+        "empower": "ಸಬಲೀಕರಣಗೊಳ್ಳಿ",
+        "choose_scheme": "ಯೋಜನೆಯ ಬಗ್ಗೆ ತಿಳಿಸಿ",
+        "upload": "ನೀತಿಯ PDF ಅಥವಾ ಪಠ್ಯ ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+        "explain": "ಈ ನೀತಿಯನ್ನು ವಿವರಿಸಿ",
+        "full_name": "ಪೂರ್ಣ ಹೆಸರು",
+        "income": "ವಾರ್ಷಿಕ ಆದಾಯ",
+        "approve": "ಅನುಮೋದಿಸಿ ಮತ್ತು ಸಲ್ಲಿಸಿ",
+        "continue": "ಮುಂದುವರಿಸಿ",
+        "choose_language": "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    },
+}
+
+
+def t(key):
+    language = st.session_state.get("preferred_language", "English")
+    return TRANSLATIONS.get(language, TRANSLATIONS["English"]).get(key, key)
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 def card(key: str):
@@ -394,7 +553,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-tab_find, tab_apply, tab_empower = st.tabs(["🔍 Find", "📝 Apply", "💪 Empower"])
+tab_find, tab_apply, tab_empower = st.tabs([
+    "🔍 " + t("find"),
+    "📝 " + t("apply"),
+    "💪 " + t("empower")
+])
 
 # ---------------------------------------------------------------------------
 # FIND
@@ -405,14 +568,14 @@ with tab_find:
 
     with col_in:
         with card("find_in"):
-            step(1, "Tell us about the scheme", "Upload a document or paste its text.")
+            step(1, t("choose_scheme"), "Upload a document or paste its text.")
 
             language = st.selectbox(
-                "Choose Language:",
+                t("choose_language"),
                 list(LANGUAGES),
                 format_func=lambda l: l if l == "English" else f"{l} ({LANGUAGES[l]})",
             )
-            uploaded = st.file_uploader("Upload a policy PDF or text file", type=["pdf", "txt"])
+            uploaded = st.file_uploader(t("upload"), type=["pdf", "txt"])
             st.text_area(
                 "Or paste the notification text",
                 key="policy_text",
@@ -422,7 +585,7 @@ with tab_find:
 
             b1, b2 = st.columns([3, 2])
             with b1:
-                explain_clicked = st.button("Explain this policy", type="primary", use_container_width=True)
+                explain_clicked = st.button(t("explain"), type="primary", use_container_width=True)
             with b2:
                 st.button("Use sample scheme", on_click=load_sample, use_container_width=True)
 
@@ -482,10 +645,10 @@ with tab_apply:
                 "Upload a document to read details from (optional)",
                 type=["png", "jpg", "pdf"],
             )
-            user_name = st.text_input("Full name", "Rahul Sharma")
+            user_name = st.text_input(t("full_name"), "Rahul Sharma")
             c1, c2 = st.columns(2)
             with c1:
-                user_income = st.number_input("Annual income (₹)", min_value=0, value=120000, step=10000)
+                user_income = st.number_input(t("income") + " (₹)", min_value=0, value=120000, step=10000)
             with c2:
                 user_state = st.selectbox("State", ["Karnataka", "Maharashtra", "Tamil Nadu", "Delhi"])
             target_url = st.text_input("Application portal address", "https://example.com/demo-portal")
@@ -547,7 +710,7 @@ with tab_apply:
                     a1, a2 = st.columns(2)
                     with a1:
                         approve = st.button(
-                            "Approve and submit",
+                           t("approve"),
                             type="primary",
                             use_container_width=True,
                             disabled=not agent.get("session_id"),
