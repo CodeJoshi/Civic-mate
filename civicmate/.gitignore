@@ -1,6 +1,16 @@
+# Python cache files
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Virtual environments
 .venv/
-!.env
+venv/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Generated receipt images
 backend/receipts/*.png
