@@ -1,4 +1,5 @@
 import pytest
+from types import SimpleNamespace
 from pydantic import ValidationError
 from backend.app.models import UserProfile, Language, SchemeSummary
 from backend.app.ai_service import apply_income_gate, _offline_summary
@@ -21,3 +22,26 @@ def test_offline_tamil_has_three_bullets():
     summary=_offline_summary('PMAY',Language.TAMIL)
     assert len(summary.eligibility_bullets)==3
     assert summary.income_cap==300000
+
+def test_document_extraction_uses_configured_gemini_model(tmp_path, monkeypatch):
+    from backend.app import agent_service
+
+    image_path = tmp_path / "document.png"
+    image_path.write_bytes(b"test image")
+    call = {}
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            call.update(kwargs)
+            return SimpleNamespace(parsed={})
+
+    monkeypatch.setattr(agent_service, "GEMINI_MODEL", "configured-model")
+    monkeypatch.setattr(
+        agent_service,
+        "get_gemini_client",
+        lambda: SimpleNamespace(models=FakeModels()),
+    )
+
+    agent_service._extract_document_details(str(image_path))
+
+    assert call["model"] == "configured-model"
