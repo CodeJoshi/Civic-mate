@@ -1,6 +1,11 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
-.env
-backend/receipts/*.png
+venv/
