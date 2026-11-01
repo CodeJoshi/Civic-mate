@@ -1,16 +1,11 @@
-# Python cache files
-__pycache__/
-*.py[cod]
-.pytest_cache/
-
-# Virtual environments
-.venv/
-venv/
-
-# Environment files and secrets
+# Environment variables
 .env
 .env.*
 !.env.example
 
-# Generated receipt images
-backend/receipts/*.png
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
