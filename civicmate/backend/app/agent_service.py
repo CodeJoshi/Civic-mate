@@ -1,14 +1,13 @@
 
 import asyncio
-import hashlib
 import os
-import sys
-import json
-
-from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+# Load environment variables before importing config
+load_dotenv()
+
 from google import genai
 from google.genai import types
 from playwright.async_api import async_playwright
@@ -17,13 +16,11 @@ from .config import (
     SAMPLE_DIR,
     RECEIPT_DIR,
     HEADLESS_MODE,
-    MAX_DOM_ACTIONS,
-    SELECTOR_TIMEOUT_MS
+    SELECTOR_TIMEOUT_MS,
+    GEMINI_MODEL
 )
 
-from .models import UserProfile, AgentStep, OCRExtraction
-
-load_dotenv()
+from .models import UserProfile, OCRExtraction
 
 
 # ==========================================
@@ -48,7 +45,9 @@ def _extract_document_details(file_path: str) -> OCRExtraction:
     image_path = Path(file_path)
 
     if not image_path.exists():
-        raise FileNotFoundError(f"Image not found: {file_path}")
+        raise FileNotFoundError(
+            f"Image not found: {file_path}"
+        )
 
     allowed_formats = {
         ".png": "image/png",
@@ -57,7 +56,9 @@ def _extract_document_details(file_path: str) -> OCRExtraction:
         ".webp": "image/webp"
     }
 
-    mime_type = allowed_formats.get(image_path.suffix.lower())
+    mime_type = allowed_formats.get(
+        image_path.suffix.lower()
+    )
 
     if mime_type is None:
         raise ValueError("Unsupported image format.")
@@ -78,7 +79,7 @@ def _extract_document_details(file_path: str) -> OCRExtraction:
     """
 
     response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
+        model=GEMINI_MODEL,
         contents=[
             prompt,
             types.Part.from_bytes(
@@ -156,7 +157,7 @@ async def fill_mock_portal(profile: UserProfile):
     )
 
     screenshot_path = (
-        RECEIPT_DIR / "filled_mock_portal.png"
+    RECEIPT_DIR / "filled_mock_portal_preview.png"
     )
 
     async with async_playwright() as p:
@@ -206,11 +207,9 @@ async def fill_mock_portal(profile: UserProfile):
 
             print("Review status:", review_status)
 
-            # Capture screenshot
-            await page.screenshot(
-                path=str(screenshot_path),
-                full_page=True
-            )
+            # Capture and save screenshot
+            screenshot_bytes = await page.screenshot()
+            screenshot_path.write_bytes(screenshot_bytes)
 
             return str(screenshot_path)
 
@@ -235,7 +234,7 @@ async def process_document_and_fill_portal(
     # Step 3: Fill local mock portal
     screenshot_path = await fill_mock_portal(profile)
 
-    # Step 4: Return result for review
+    # Step 4: Return result for user review
     return {
         "profile": profile.model_dump(mode="json"),
         "screenshot_path": screenshot_path,

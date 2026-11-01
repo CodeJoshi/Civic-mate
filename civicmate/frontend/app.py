@@ -35,14 +35,164 @@ with st.sidebar:
     selected=st.selectbox('Choose a sample scheme',list(scheme_names))
     uploaded=st.file_uploader('Or upload scheme PDF / TXT (max 10 MB)',type=['pdf','txt'])
 
+
+# =====================================================
+# DOCUMENT UPLOAD + OCR REVIEW
+# =====================================================
+
+st.divider()
+st.subheader("📄 Document-based profile extraction")
+
+st.write(
+    "Upload a supporting document to automatically "
+    "extract applicant details. Review everything before use."
+)
+
+ocr_file = st.file_uploader(
+    "Upload income certificate / supporting image",
+    type=["png", "jpg", "jpeg", "webp"],
+    key="ocr_upload"
+)
+
+if st.button(
+    "Extract details using AI",
+    type="primary",
+    disabled=ocr_file is None
+):
+    response = api(
+        "POST",
+        "/api/upload-document",
+        files={
+            "file": (
+                ocr_file.name,
+                ocr_file.getvalue(),
+                ocr_file.type or "image/png"
+            )
+        }
+    )
+
+    if response:
+        st.session_state.ocr_result = response.json()
+        st.session_state.pop("ocr_review", None)
+
+ocr_result = st.session_state.get("ocr_result")
+
+if ocr_result:
+    extracted = ocr_result["profile"]
+
+    st.success("Document processed successfully!")
+
+    st.info(
+        "Please verify the extracted information. "
+        "OCR results may contain mistakes."
+    )
+
+    # Editable review fields
+    with st.form("ocr_review_form"):
+        reviewed_name = st.text_input(
+            "Applicant name",
+            value=extracted.get("name") or ""
+        )
+
+        reviewed_income = st.number_input(
+            "Annual income (₹)",
+            min_value=1.0,
+            value=float(extracted.get("annual_income") or 1)
+        )
+
+        reviewed_state = st.text_input(
+            "State",
+            value=extracted.get("state") or ""
+        )
+
+        reviewed_category = st.selectbox(
+            "Category",
+            ["General", "OBC", "SC", "ST"],
+            index=(
+                ["General", "OBC", "SC", "ST"].index(
+                    extracted.get("category")
+                )
+                if extracted.get("category") in
+                ["General", "OBC", "SC", "ST"]
+                else 0
+            )
+        )
+
+        review_submit = st.form_submit_button(
+            "Confirm reviewed details"
+        )
+
+    if review_submit:
+        if len(reviewed_name.strip()) < 2:
+            st.error("Please enter a valid applicant name.")
+        elif reviewed_state not in STATES:
+            st.error("Please enter a valid Indian state name.")
+        else:
+            st.session_state.ocr_review = {
+                "name": reviewed_name.strip(),
+                "annual_income": reviewed_income,
+                "state": reviewed_state,
+                "category": reviewed_category,
+                "preferred_language": language
+            }
+            st.success("Details reviewed and confirmed!")
+
+    # Transfer reviewed information to the existing profile
+    reviewed = st.session_state.get("ocr_review")
+
+    if reviewed:
+        if st.button("Use reviewed details in citizen profile"):
+            st.session_state["profile_name"] = reviewed["name"]
+            st.session_state["profile_income"] = reviewed["annual_income"]
+            st.session_state["profile_state"] = reviewed["state"]
+            st.session_state["profile_category"] = reviewed["category"]
+            st.rerun()
+
+    screenshot = ocr_result.get("screenshot_path")
+
+    if screenshot and Path(screenshot).is_file():
+        st.image(
+            screenshot,
+            caption="Locally populated mock portal — preview only",
+            use_container_width=True
+        )
+
+    st.caption(
+        "Status: " + ocr_result.get("status", "unknown")
+    )
+
 st.subheader('1 · Citizen profile')
 with st.form('profile_form'):
     c1,c2=st.columns(2)
-    name=c1.text_input('Full name',placeholder='Enter applicant name')
-    income=c2.number_input('Annual household income (₹)',min_value=1.0,value=200000.0,step=1000.0)
-    state=c1.selectbox('State',STATES,index=STATES.index('Tamil Nadu'))
-    category=c2.selectbox('Social category',['General','OBC','SC','ST'])
-    analyze=st.form_submit_button('✨ Analyze scheme eligibility',type='primary',use_container_width=True)
+    
+name=c1.text_input(
+    'Full name',
+    placeholder='Enter applicant name',
+    key='profile_name'
+)
+
+income=c2.number_input(
+    'Annual household income (₹)',
+    min_value=1.0,
+    value=200000.0,
+    step=1000.0,
+    key='profile_income'
+)
+
+state=c1.selectbox(
+    'State',
+    STATES,
+    index=STATES.index('Tamil Nadu'),
+    key='profile_state'
+)
+
+category=c2.selectbox(
+    'Social category',
+    ['General','OBC','SC','ST'],
+    key='profile_category'
+)
+
+analyze=st.form_submit_button('✨ Analyze scheme eligibility',type='primary',use_container_width=True)
 if analyze:
     if len(name.strip())<2: st.error('Please enter a name with at least 2 characters.')
     else:
